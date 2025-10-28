@@ -1,0 +1,94 @@
+{
+  "dataset": "burgers_data_R10.mat",
+  "n_variables": 5,
+  "variables": {
+    "a": {
+      "shape": [
+        2048,
+        8192
+      ],
+      "size": 16777216,
+      "dtype": "float64",
+      "mean": 1.8931186371133613e-19,
+      "std": 0.5894236785943828,
+      "min": -2.2962219556221997,
+      "max": 2.6648084568058166,
+      "n_outliers": 42706,
+      "pct_outliers": 0.25,
+      "notes": "Raw acceleration term; mild heavy tails."
+    },
+    "a_smooth": {
+      "shape": [
+        2048,
+        8192
+      ],
+      "size": 16777216,
+      "dtype": "float64",
+      "mean": -0.0018948705093323266,
+      "std": 0.6838017639077397,
+      "min": -2.4162676072664273,
+      "max": 2.6648084568058166,
+      "n_outliers": 9327,
+      "pct_outliers": 0.056,
+      "notes": "Smoothed acceleration; fewer extreme points."
+    },
+    "a_smooth_x": {
+      "shape": [
+        2048,
+        8191
+      ],
+      "size": 16775168,
+      "dtype": "float64",
+      "mean": -0.0006070458971161056,
+      "std": 0.5872798354617046,
+      "min": -2.4572442863495287,
+      "max": 2.296045528323745,
+      "n_outliers": 41848,
+      "pct_outliers": 0.25,
+      "notes": "Spatial derivative of smoothed acceleration."
+    },
+    "a_x": {
+      "shape": [
+        2048,
+        8191
+      ],
+      "size": 16775168,
+      "dtype": "float64",
+      "mean": 9.382002407727918e-07,
+      "std": 0.8388724453131315,
+      "min": -3.869180391851075,
+      "max": 3.7105510409101607,
+      "n_outliers": 48959,
+      "pct_outliers": 0.29,
+      "notes": "Spatial derivative of raw acceleration; highest variability."
+    },
+    "u": {
+      "shape": [
+        2048,
+        8192
+      ],
+      "size": 16777216,
+      "dtype": "float64",
+      "mean": -1.1163894244811678e-18,
+      "std": 0.48799478360678855,
+      "min": -1.7130569022253612,
+      "max": 1.8928327999912824,
+      "n_outliers": 28222,
+      "pct_outliers": 0.17,
+      "notes": "Primary velocity field; well-behaved."
+    }
+  },
+  "overall_findings": {
+    "missing_values": false,
+    "largest_variance_variable": "a_x",
+    "largest_outlier_ratio_variable": "a_x",
+    "data_symmetry": "All distributions centred at 0; symmetric tails.",
+    "quality": "Good",
+    "recommendations": [
+      "Apply zero-mean, unit-variance normalisation before ML.",
+      "Retain outliers (<0.3%) or use robust loss functions.",
+      "Down-sample spatial grid or cast to float32 for memory savings.",
+      "Engineer temporal derivatives and shock indicators for richer features."
+    ]
+  }
+}

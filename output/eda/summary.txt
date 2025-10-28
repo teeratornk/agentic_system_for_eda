@@ -1,0 +1,105 @@
+================================================================================
+BURGERS DATA ANALYSIS SUMMARY
+================================================================================
+
+1. SHAPE ANALYSIS
+----------------------------------------
+
+Variable: a
+  Shape: (2048, 8192)
+  Dimensions: 2
+  Total elements: 16777216
+  Data type: float64
+
+Variable: a_smooth
+  Shape: (2048, 8192)
+  Dimensions: 2
+  Total elements: 16777216
+  Data type: float64
+
+Variable: a_smooth_x
+  Shape: (2048, 8191)
+  Dimensions: 2
+  Total elements: 16775168
+  Data type: float64
+
+Variable: a_x
+  Shape: (2048, 8191)
+  Dimensions: 2
+  Total elements: 16775168
+  Data type: float64
+
+Variable: u
+  Shape: (2048, 8192)
+  Dimensions: 2
+  Total elements: 16777216
+  Data type: float64
+
+
+2. STATISTICAL ANALYSIS
+----------------------------------------
+
+Variable: a
+  Mean: 0.000000
+  Std Dev: 0.589424
+  Min: -2.296222
+  Max: 2.664808
+  Median: -0.000956
+  Q1 (25%): -0.395529
+  Q3 (75%): 0.393035
+  IQR: 0.788565
+  Non-zero values: 16777216
+  NaN values: 0
+  Inf values: 0
+
+Variable: a_smooth
+  Mean: -0.001895
+  Std Dev: 0.683802
+  Min: -2.416268
+  Max: 2.664808
+  Median: 0.000354
+  Q1 (25%): -0.519375
+  Q3 (75%): 0.514582
+  IQR: 1.033957
+  Non-zero values: 16777216
+  NaN values: 0
+  Inf values: 0
+
+Variable: a_smooth_x
+  Mean: -0.000607
+  Std Dev: 0.587280
+  Min: -2.457244
+  Max: 2.296046
+  Median: 0.001837
+  Q1 (25%): -0.412912
+  Q3 (75%): 0.408545
+  IQR: 0.821457
+  Non-zero values: 16775168
+  NaN values: 0
+  Inf values: 0
+
+Variable: a_x
+  Mean: 0.000001
+  Std Dev: 0.838872
+  Min: -3.869180
+  Max: 3.710551
+  Median: -0.005797
+  Q1 (25%): -0.567859
+  Q3 (75%): 0.563828
+  IQR: 1.131687
+  Non-zero values: 16775168
+  NaN values: 0
+  Inf values: 0
+
+Variable: u
+  Mean: -0.000000
+  Std Dev: 0.487995
+  Min: -1.713057
+  Max: 1.892833
+  Median: 0.000226
+  Q1 (25%): -0.331332
+  Q3 (75%): 0.329517
+  IQR: 0.660849
+  Non-zero values: 16777216
+  NaN values: 0
+  Inf values: 0

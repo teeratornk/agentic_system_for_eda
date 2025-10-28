@@ -1,0 +1,62 @@
+1. I have a matlab data file in data/burgers_data_R10.mat, could you write a script, put it in eda folder to understand 1. shape, statistical analysis of the those data, and save summary into output\eda folder
+
+2. 
+
+
+
+create ag2 agentic system using config from config.py, put the python file in main working folder, the goal is to have a system that perform data EDA
+
+1. the path of the file will be provided like -> output\burgers_data_R10.mat (make sure it works on the correct file path as it can be absolute or relative paths)
+
+the first agent, please expand their system_message and description
+
+everying will be in eda folder
+eda/stats -> host all statistical / quantitative values produced by data_analyzer and executor -> all in json format
+eda/reports -> host all recommendation that data_planner produces for data_analyzer and user, make sure to mark if this is for user or data_analyzer
+eda/figures -> host all figures produced by data_analyzer and executor for users to investigate
+eda folder will host the python code produced by data_analyzer and executor executes 
+
+data_planner = autogen.ConversableAgent(
+    name="data planner",
+    llm_config=llm_config,
+    system_message="understand the path given by user, file type and
+    making plans for data_analyzer to perform EDA, once data_analyzer produces statistical analysis, quantitative values provide feedback if anything else needed, if no further feedback provide summary and recommendation
+to user by saving the recommendation in 
+    eda/reportsdata_report.md and eda/reports/data_report.json 
+    description="data_planner."
+)
+
+data_analyzer = autogen.AssistantAgent(
+    name="data analyzer",
+    llm_config=llm_config,
+    system_message="get the plan and feedback from data_planner and write python code, to get statistical analysis, quantitative values, send the code to executor for excection, you can plot figures for users
+    description="data analyzer."
+)
+
+
+executor = autogen.ConversableAgent(
+    name="Executor",
+    system_message="Execute the code written by the "
+    "data_analyzer report the results, if code does not work, send feedback to data_analyzer, if succeed, send results to data_planner
+    human_input_mode="NEVER",
+    code_execution_config={
+        "last_n_messages": 3,
+        "work_dir": "eda",
+        "use_docker": False,
+    },
+)
+
+groupchat = autogen.GroupChat(
+    agents=[data_planner, data_analyzer, executor],
+    messages=[],
+    allowed_or_disallowed_speaker_transitions={
+            data_analyzer: [executor, data_planner],
+            executor: [data_analyzer, data_planner],
+            data_planner: [data_analyzer],
+        },
+        speaker_transitions_type="allowed",
+    max_round=200,
+)
+
+make sure prompt is succinct, simpler is better, make sure for generalization and ensure creativity
+

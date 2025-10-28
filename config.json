@@ -1,0 +1,36 @@
+{
+  "datasets": [
+    {
+      "path": "data/*.json",
+      "type": "json",
+      "json_params": {
+        "encoding": "utf-8",
+        "orient": "records",
+        "lines": false
+      },
+      "datetime": []
+    }
+  ],
+  "columns": {
+    "include": ["*"],
+    "exclude": [],
+    "categorical_max_unique": 50,
+    "numeric_outlier": {
+      "method": "iqr",
+      "z": 3.0,
+      "iqr_k": 1.5,
+      "winsorize": false
+    }
+  },
+  "sampling": {
+    "head": 20,
+    "tail": 20,
+    "random": 500,
+    "random_seed": 42
+  },
+  "figures": {
+    "per_numeric": ["hist", "box"],
+    "per_categorical": ["bar"],
+    "global": ["corr", "missingness"]
+  }
+}
