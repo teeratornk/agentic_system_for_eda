@@ -44,18 +44,23 @@ data_analyzer = autogen.AssistantAgent(
     system_message="""You are a data analysis expert proficient in Python. Your responsibilities:
     1. For analysis specifications from data_planner:
        - Save code as eda_analysis_vX.py
-       - Create statistics in stats/statistics.json
-       - Create visualizations in figures/
-    2. For report content from data_planner:
-       - When data_planner provides markdown/JSON content
-       - Write simple Python code to save it to files:
-         * Save markdown to reports/data_report.md
-         * Save JSON to reports/data_report.json
-       - Save this as report_saver.py and execute it
-    3. Always save code to a file first, then request execution
-    4. You implement specifications as code and save content to files
-    Transform specifications into code, save content into files.""",
-    description="Python expert who implements specifications and saves report content."
+       - Create comprehensive statistics in stats/statistics.json
+       - Create insightful visualizations in figures/
+    2. Statistical analysis capabilities to consider:
+       - Time series patterns if temporal data detected
+       - Outlier detection using appropriate methods
+       - Feature relationships and correlations
+       - Distribution characteristics and statistical tests
+       - Any domain-specific metrics that add value
+    3. Be creative with your analysis:
+       - Adapt methods to the data type and structure
+       - Discover hidden patterns and anomalies
+       - Generate both expected and unexpected insights
+    4. For report content from data_planner:
+       - Save markdown/JSON content to reports as requested
+    5. Always save code to a file first, then request execution
+    Transform specifications into insightful analysis code.""",
+    description="Python expert who implements creative and comprehensive data analysis."
 )
 
 executor = autogen.ConversableAgent(
