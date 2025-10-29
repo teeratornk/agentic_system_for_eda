@@ -16,16 +16,19 @@ for dir_path in eda_dirs:
 data_planner = autogen.ConversableAgent(
     name="data_planner",
     llm_config=llm_config,
-    system_message="""You are a data planning expert. Your responsibilities:
-    1. Initial Phase - Create EDA specifications:
-       - Specify data loading requirements
-       - Define statistical metrics needed
-       - List visualization types required
+    system_message="""You are a data planning expert specialized in scientific machine learning and reduced order modeling. Your responsibilities:
+    1. Initial Phase - Create validation and EDA specifications:
+       - First, request data validation from data_validator
+       - After validation passes, specify analysis requirements
+       - Define statistical metrics and visualizations needed
+       - Consider physics-based patterns and dimensionality reduction opportunities
     2. Report Phase - After receiving statistics/figures from executor:
        - Analyze the statistics JSON content shown by executor
+       - CRITICAL: Check variable names in statistics match those in reports
        - Create the ACTUAL REPORT CONTENT (not code):
          * Write the full markdown text for data_report.md
          * Create the JSON structure for data_report.json
+         * Use EXACT variable names from statistics.json (e.g., if stats show 'a', 'a_smooth', don't write 't', 'x')
        - Send this content to data_analyzer with instruction:
          "Save the following markdown content to reports/data_report.md: [content]
           Save the following JSON to reports/data_report.json: [content]"
@@ -34,8 +37,42 @@ data_planner = autogen.ConversableAgent(
        - Simply respond: "TERMINATE"
        - This ends the conversation
     4. NEVER write Python code - only specifications and report content
-    You create report CONTENT, data_analyzer saves it, then you TERMINATE.""",
-    description="Strategic planner who creates report content and terminates when complete."
+    5. INCREMENTAL REQUESTS - Be efficient:
+       - Check what's already done (stats/statistics.json, figures/*, reports/*)
+       - Only request NEW or ADDITIONAL analysis, never repeat completed work
+       - If you need more analysis, specify ONLY the additional metrics needed
+       - Example: "Add correlation matrix to existing statistics" not "Redo all analysis"
+    6. CONSISTENCY CHECK:
+       - Variable names in reports MUST match those in statistics.json
+       - Don't invent new variable names or interpretations
+       - Report what the data actually contains, not what you assume it represents
+    Be critically curious: question unusual patterns, probe deeper into interesting findings, and always ask "what else can this data tell us?" before finalizing reports.
+    Start with validation, then analysis, create reports, then TERMINATE.""",
+    description="Strategic planner who coordinates validation, analysis, and reporting."
+)
+
+data_validator = autogen.AssistantAgent(
+    name="data_validator",
+    llm_config=llm_config,
+    system_message="""You are a data quality expert. Your responsibilities:
+    1. When data_planner requests validation, create Python code to:
+       - Load and inspect the data structure
+       - Check for data quality issues that matter
+       - Assess data readiness for analysis
+    2. Quality checks to consider (adapt to data type):
+       - Data completeness and missing patterns
+       - Data types and format consistency
+       - Value ranges and potential anomalies
+       - Size and memory considerations
+       - Any domain-specific quality concerns
+    3. Be pragmatic:
+       - Focus on issues that impact analysis
+       - Provide actionable quality insights
+       - Save validation results to stats/data_quality.json
+    4. Save code as data_validation.py and request execution
+    IMPORTANT: Use relative paths - stats/, figures/, reports/ (NOT eda/stats/)
+    Adapt validation to the data's nature and intended use.""",
+    description="Data quality expert who ensures data readiness for analysis."
 )
 
 data_analyzer = autogen.AssistantAgent(
@@ -59,6 +96,7 @@ data_analyzer = autogen.AssistantAgent(
     4. For report content from data_planner:
        - Save markdown/JSON content to reports as requested
     5. Always save code to a file first, then request execution
+    IMPORTANT: Use relative paths - stats/, figures/, reports/ (NOT eda/stats/)
     Transform specifications into insightful analysis code.""",
     description="Python expert who implements creative and comprehensive data analysis."
 )
@@ -66,38 +104,51 @@ data_analyzer = autogen.AssistantAgent(
 executor = autogen.ConversableAgent(
     name="executor",
     system_message="""You are a code execution specialist. Your responsibilities:
-    1. When data_analyzer provides code:
-       - First execute any file-saving code
-       - Then execute the saved file with: python filename.py
-    2. After executing analysis files:
+    1. When data_validator provides code:
+       - Execute the validation code
+       - If SUCCESS: Show validation results and tell data_planner "Validation complete"
+       - If FAILURE: Report error back to data_validator for fixes
+    2. When data_analyzer provides code:
+       - Execute the analysis/report saving code
+       - If SUCCESS: Show results and tell data_planner to review/proceed
+       - If FAILURE: Report error back to data_analyzer for fixes
+    3. After executing validation files:
+       - Show validation results from stats/data_quality.json
+       - Report any data quality issues found to data_planner
+    4. After executing analysis files:
        - Show console output
        - List created files: ls -la stats/ figures/
        - IMPORTANT: Show full statistics: cat stats/statistics.json
        - List figures: ls figures/*.png
        - Tell data_planner: "Analysis complete. Review the statistics above to create reports."
-    3. After executing report saving:
+    5. After executing report saving:
        - Show: ls -la reports/
        - Show report content: head -30 reports/data_report.md
-       - Confirm: "Reports saved successfully. All tasks complete."
-    4. Always show file contents so data_planner can see the data
-    Show actual content, especially statistics.json for report creation.""",
+       - Confirm to data_planner: "Reports saved successfully. All tasks complete."
+    IMPORTANT: Route results correctly:
+    - data_validator errors → back to data_validator
+    - data_analyzer errors → back to data_analyzer
+    - Successful results → to data_planner
+    You're already in the eda/ folder - all paths are relative to here.""",
     human_input_mode="NEVER",
     code_execution_config={
         "last_n_messages": 3,
         "work_dir": "eda",
         "use_docker": False,
+        "timeout": 120,  # Add 120 second timeout
     },
-    description="Executes code and confirms completion for termination."
+    description="Executes code and routes feedback to the appropriate agent."
 )
 
 # Set up group chat with controlled transitions
 groupchat = autogen.GroupChat(
-    agents=[data_planner, data_analyzer, executor],
+    agents=[data_planner, data_validator, data_analyzer, executor],
     messages=[],
     allowed_or_disallowed_speaker_transitions={
-        data_planner: [data_analyzer],
+        data_planner: [data_validator, data_analyzer],
+        data_validator: [executor],
         data_analyzer: [executor],
-        executor: [data_analyzer, data_planner],
+        executor: [data_validator, data_analyzer, data_planner],
     },
     speaker_transitions_type="allowed",
     max_round=200,
@@ -139,6 +190,9 @@ def perform_eda(file_path: str):
     
     Requirements:
     1. Load and inspect the data structure
+       - If data is nested (e.g., dictionaries with arrays, hierarchical structures), unfold and analyze each component
+       - For .mat files: analyze each variable separately if multiple exist
+       - For nested JSON/dict: explore all levels and sub-structures
     2. Generate descriptive statistics and SAVE to stats/statistics.json
     3. Create visualizations and SAVE to figures/ directory
     4. Identify patterns and anomalies
