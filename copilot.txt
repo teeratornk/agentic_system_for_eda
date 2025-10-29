@@ -60,3 +60,13 @@ groupchat = autogen.GroupChat(
 
 make sure prompt is succinct, simpler is better, make sure for generalization and ensure creativity
 
+from autogen import register_function
+
+for caller in [data_analyzer, data_validaton]:
+    register_function(
+        TODO,
+        caller=caller,
+        executor=todo,
+        name="todo",
+        description="todo",
+    )

@@ -1,4 +1,5 @@
 import autogen
+from autogen import register_function
 import os
 import sys
 from pathlib import Path
@@ -6,9 +7,10 @@ from pathlib import Path
 # Add parent directory to path to import config
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from config import llm_config
+from code_saver_tool import save_agent_code
 
 # Create EDA directory structure
-eda_dirs = ["eda", "eda/stats", "eda/reports", "eda/figures"]
+eda_dirs = ["eda", "eda/stats", "eda/reports", "eda/figures", "eda/code"]
 for dir_path in eda_dirs:
     Path(dir_path).mkdir(parents=True, exist_ok=True)
 
@@ -22,6 +24,10 @@ data_planner = autogen.ConversableAgent(
        - After validation passes, specify analysis requirements
        - Define statistical metrics and visualizations needed
        - Consider physics-based patterns and dimensionality reduction opportunities
+       - IMPORTANT FOR LARGE DATA: For arrays with many columns/features (>100):
+         * Request AGGREGATE statistics across all dimensions, not per-column
+         * Focus on overall data characteristics, not individual feature stats
+         * Example: "Calculate overall min/max/mean/std for the entire array"
     2. Report Phase - After receiving statistics/figures from executor:
        - Analyze the statistics JSON content shown by executor
        - CRITICAL: Check variable names in statistics match those in reports
@@ -46,6 +52,12 @@ data_planner = autogen.ConversableAgent(
        - Variable names in reports MUST match those in statistics.json
        - Don't invent new variable names or interpretations
        - Report what the data actually contains, not what you assume it represents
+    7. STATISTICAL EFFICIENCY:
+       - For high-dimensional data (2D arrays with >100 columns), request:
+         * Overall statistics (entire array)
+         * Sample statistics (first few columns if needed)
+         * Correlation for key variables only
+       - Avoid per-column statistics for thousands of dimensions
     Be critically curious: question unusual patterns, probe deeper into interesting findings, and always ask "what else can this data tell us?" before finalizing reports.
     Start with validation, then analysis, create reports, then TERMINATE.""",
     description="Strategic planner who coordinates validation, analysis, and reporting."
@@ -69,7 +81,11 @@ data_validator = autogen.AssistantAgent(
        - Focus on issues that impact analysis
        - Provide actionable quality insights
        - Save validation results to stats/data_quality.json
-    4. Save code as data_validation.py and request execution
+    4. MANDATORY: Use save_code_file() tool to save your code:
+       - save_code_file(code=your_code, filename="data_validation.py", subfolder="code")
+       - This saves to eda/code/ with automatic versioning
+       - Then request: "Please execute: python code/data_validation_vX.py"
+       - DO NOT write code blocks to save files manually
     IMPORTANT: Use relative paths - stats/, figures/, reports/ (NOT eda/stats/)
     Adapt validation to the data's nature and intended use.""",
     description="Data quality expert who ensures data readiness for analysis."
@@ -80,7 +96,6 @@ data_analyzer = autogen.AssistantAgent(
     llm_config=llm_config,
     system_message="""You are a data analysis expert proficient in Python. Your responsibilities:
     1. For analysis specifications from data_planner:
-       - Save code as eda_analysis_vX.py
        - Create comprehensive statistics in stats/statistics.json
        - Create insightful visualizations in figures/
     2. Statistical analysis capabilities to consider:
@@ -95,7 +110,11 @@ data_analyzer = autogen.AssistantAgent(
        - Generate both expected and unexpected insights
     4. For report content from data_planner:
        - Save markdown/JSON content to reports as requested
-    5. Always save code to a file first, then request execution
+    5. MANDATORY: Use save_code_file() tool to save your code:
+       - save_code_file(code=analysis_code, filename="eda_analysis.py", subfolder="code")
+       - This saves to eda/code/ with automatic versioning
+       - Then request: "Please execute: python code/eda_analysis_vX.py"
+       - DO NOT write code blocks to save files manually
     IMPORTANT: Use relative paths - stats/, figures/, reports/ (NOT eda/stats/)
     Transform specifications into insightful analysis code.""",
     description="Python expert who implements creative and comprehensive data analysis."
@@ -139,6 +158,16 @@ executor = autogen.ConversableAgent(
     },
     description="Executes code and routes feedback to the appropriate agent."
 )
+
+# Register the code saving tool for data_validator and data_analyzer
+for caller in [data_analyzer, data_validator]:
+    register_function(
+        save_agent_code,
+        caller=caller,
+        executor=executor,
+        name="save_code_file",
+        description="Save code to a file with automatic versioning. Args: code (str): The code content to save, filename (str): Desired filename (e.g., 'analysis.py'), subfolder (str, optional): Subfolder within eda directory (e.g., 'code'), base_dir (str): Base directory, defaults to 'eda'. Returns dict with status and file path.",
+    )
 
 # Set up group chat with controlled transitions
 groupchat = autogen.GroupChat(
