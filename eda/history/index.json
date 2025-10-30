@@ -1,0 +1,30 @@
+{
+  "reports": [
+    {
+      "id": "92ffce108325",
+      "timestamp": "2025-10-30T12:47:03.069339",
+      "file_path": "reports/final_consolidated_report.md",
+      "file_type": ".md",
+      "data_summary": {},
+      "statistics": {},
+      "insights": [
+        "All variables centered near zero with variance 0.49-0.84",
+        "Dominant low-frequency modes across all fields",
+        "Derivative fields show higher variance and spectral power",
+        "No missing data and minimal outliers",
+        "Correlation analysis requires dimensionality reduction"
+      ],
+      "report_file": "92ffce108325_report.md"
+    }
+  ],
+  "patterns": {
+    ".md": [
+      {
+        "data_shape": "unknown",
+        "has_missing": false,
+        "common_analyses": [],
+        "insights_count": 5
+      }
+    ]
+  }
+}

@@ -187,6 +187,89 @@ class CodeSaver:
         file_path = target_dir / filename
         return file_path.exists()
 
+    def save_report_with_version(self,
+                                 content: str,
+                                 base_filename: str,
+                                 subfolder: str = "reports",
+                                 save_latest: bool = True) -> Dict[str, str]:
+        """
+        Save report with automatic versioning and optional 'latest' copy.
+        
+        Args:
+            content: Report content to save
+            base_filename: Base name (e.g., "data_report.md")
+            subfolder: Subfolder to save in (default: "reports")
+            save_latest: Whether to also save as _latest version
+            
+        Returns:
+            Dictionary with paths of saved files
+        """
+        target_dir = self.base_dir / subfolder
+        target_dir.mkdir(parents=True, exist_ok=True)
+        
+        base_name = Path(base_filename).stem
+        extension = Path(base_filename).suffix
+        
+        # Find next available version
+        version_num = 1
+        while (target_dir / f"{base_name}_v{version_num}{extension}").exists():
+            version_num += 1
+        
+        # Save versioned file
+        versioned_filename = f"{base_name}_v{version_num}{extension}"
+        versioned_path = target_dir / versioned_filename
+        with open(versioned_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        
+        paths = {"versioned": str(versioned_path)}
+        
+        # Optionally save as 'latest'
+        if save_latest:
+            latest_filename = f"{base_name}_latest{extension}"
+            latest_path = target_dir / latest_filename
+            with open(latest_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            paths["latest"] = str(latest_path)
+        
+        return paths
+
+    def save_final_report(self,
+                         content: str,
+                         base_filename: str = "data_report",
+                         subfolder: str = "reports") -> Dict[str, str]:
+        """
+        Save the final consolidated report with clear naming.
+        
+        Args:
+            content: Final report content
+            base_filename: Base name without extension
+            subfolder: Subfolder to save in
+            
+        Returns:
+            Dictionary with paths of saved files
+        """
+        target_dir = self.base_dir / subfolder
+        target_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Save as FINAL with timestamp for uniqueness
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # Main final report
+        final_md = f"{base_filename}_FINAL.md"
+        final_path = target_dir / final_md
+        with open(final_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        
+        # Archive with timestamp (in case of multiple runs)
+        archive_md = f"{base_filename}_FINAL_{timestamp}.md"
+        archive_path = target_dir / archive_md
+        with open(archive_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        
+        return {
+            "final": str(final_path),
+            "archive": str(archive_path)
+        }
 
 # Function wrapper for easy agent use
 def save_agent_code(code: str, 
@@ -218,6 +301,67 @@ def save_agent_code(code: str,
             "status": "error",
             "message": f"Failed to save code: {str(e)}",
             "path": None
+        }
+
+def save_versioned_report(content: str,
+                         filename: str,
+                         base_dir: str = "eda") -> Dict[str, str]:
+    """
+    Save report with versioning to prevent overwrites.
+    
+    Args:
+        content: Report content
+        filename: Base filename (e.g., "data_report.md")
+        base_dir: Base directory
+        
+    Returns:
+        Dictionary with status and file paths
+    """
+    try:
+        saver = CodeSaver(base_dir)
+        paths = saver.save_report_with_version(content, filename)
+        return {
+            "status": "success",
+            "message": f"Report saved with versioning",
+            "versioned_path": paths.get("versioned"),
+            "latest_path": paths.get("latest")
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to save report: {str(e)}",
+            "versioned_path": None,
+            "latest_path": None
+        }
+
+
+def save_final_consolidated_report(content: str,
+                                  base_dir: str = "eda") -> Dict[str, str]:
+    """
+    Save the final consolidated report.
+    
+    Args:
+        content: Final report content
+        base_dir: Base directory
+        
+    Returns:
+        Dictionary with status and file paths
+    """
+    try:
+        saver = CodeSaver(base_dir)
+        paths = saver.save_final_report(content)
+        return {
+            "status": "success",
+            "message": "Final consolidated report saved",
+            "final_path": paths.get("final"),
+            "archive_path": paths.get("archive")
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to save final report: {str(e)}",
+            "final_path": None,
+            "archive_path": None
         }
 
 
