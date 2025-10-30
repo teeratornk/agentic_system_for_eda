@@ -495,7 +495,7 @@ Contributions are welcome! Areas for improvement:
 
 - Built with [AG2 (AutoGen v2)](https://github.com/ag2ai/ag2)
 - Powered by Azure OpenAI
-- Example data courtesy of [Goswami et al. (2022)](https://www.sciencedirect.com/science/article/abs/pii/S0045782522001207)
+- Example data courtesy of [Lu Lu et al. (2022)](https://www.sciencedirect.com/science/article/abs/pii/S0045782522001207)
 - Optimized for scientific computing workflows
 
 ## 📞 Support
