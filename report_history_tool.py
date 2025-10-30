@@ -300,29 +300,45 @@ def load_current_reports() -> Dict[str, Any]:
     """
     try:
         reports_dir = Path("eda/reports")
-        md_path = reports_dir / "data_report.md"
-        json_path = reports_dir / "data_report.json"
+        
+        # Check for all report versions
+        all_reports = list(reports_dir.glob("data_report*.md")) if reports_dir.exists() else []
+        report_files = {
+            "versioned": [],
+            "final": None,
+            "latest": None
+        }
+        
+        for report in all_reports:
+            name = report.name
+            if "FINAL" in name:
+                report_files["final"] = name
+            elif "latest" in name:
+                report_files["latest"] = name
+            elif "_v" in name:
+                report_files["versioned"].append(name)
         
         result = {
             "status": "success",
-            "markdown_exists": md_path.exists(),
-            "json_exists": json_path.exists(),
-            "markdown_content": None,
-            "json_content": None
+            "reports_found": len(all_reports),
+            "versioned_reports": report_files["versioned"],
+            "final_report_exists": report_files["final"] is not None,
+            "final_report_name": report_files["final"],
+            "latest_report_name": report_files["latest"],
+            "final_content": None,
+            "message": ""
         }
         
-        if md_path.exists():
-            with open(md_path, 'r', encoding='utf-8') as f:
-                result["markdown_content"] = f.read()
-        
-        if json_path.exists():
-            with open(json_path, 'r', encoding='utf-8') as f:
-                result["json_content"] = json.load(f)
-        
-        if not md_path.exists() and not json_path.exists():
-            result["message"] = "No reports found. Analysis may not be complete."
+        # Load final report content if it exists
+        if report_files["final"]:
+            final_path = reports_dir / report_files["final"]
+            with open(final_path, 'r', encoding='utf-8') as f:
+                result["final_content"] = f.read()[:1000] + "..." if len(f.read()) > 1000 else f.read()
+            result["message"] = f"Final report found: {report_files['final']}"
+        elif report_files["versioned"]:
+            result["message"] = f"Found {len(report_files['versioned'])} versioned reports, but no FINAL report"
         else:
-            result["message"] = "Reports loaded successfully"
+            result["message"] = "No reports found. Analysis may not be complete."
             
         return result
         
@@ -330,8 +346,213 @@ def load_current_reports() -> Dict[str, Any]:
         return {
             "status": "error",
             "message": f"Failed to load reports: {str(e)}",
-            "markdown_exists": False,
-            "json_exists": False
+            "reports_found": 0,
+            "final_report_exists": False
+        }
+
+def check_analysis_files() -> Dict[str, Any]:
+    """
+    Check what analysis files exist in the EDA directories.
+    
+    Returns:
+        Dictionary with file existence information
+    """
+    try:
+        eda_base = Path("eda")
+        
+        # Check statistics
+        stats_files = list((eda_base / "stats").glob("*.json")) if (eda_base / "stats").exists() else []
+        
+        # Check figures
+        figure_files = []
+        if (eda_base / "figures").exists():
+            for ext in ["*.png", "*.jpg", "*.pdf", "*.svg"]:
+                figure_files.extend((eda_base / "figures").glob(ext))
+        
+        # Check reports
+        report_files = list((eda_base / "reports").glob("*.md")) if (eda_base / "reports").exists() else []
+        json_reports = list((eda_base / "reports").glob("*.json")) if (eda_base / "reports").exists() else []
+        
+        # Check for specific key files
+        statistics_exists = (eda_base / "stats" / "statistics.json").exists()
+        final_report_exists = (eda_base / "reports" / "data_report_FINAL.md").exists()
+        
+        return {
+            "status": "success",
+            "statistics": {
+                "exists": statistics_exists,
+                "path": "stats/statistics.json" if statistics_exists else None,
+                "other_stats": [f.name for f in stats_files]
+            },
+            "figures": {
+                "count": len(figure_files),
+                "files": [f.name for f in figure_files]
+            },
+            "reports": {
+                "markdown_count": len(report_files),
+                "json_count": len(json_reports),
+                "final_exists": final_report_exists,
+                "markdown_files": [f.name for f in report_files],
+                "json_files": [f.name for f in json_reports]
+            },
+            "summary": {
+                "analysis_complete": statistics_exists,
+                "figures_generated": len(figure_files) > 0,
+                "reports_created": len(report_files) > 0,
+                "final_report_ready": final_report_exists
+            }
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to check files: {str(e)}",
+            "summary": {
+                "analysis_complete": False,
+                "figures_generated": False,
+                "reports_created": False,
+                "final_report_ready": False
+            }
+        }
+
+def verify_final_report() -> Dict[str, Any]:
+    """
+    Specifically verify that the final report exists and is valid.
+    
+    Returns:
+        Dictionary with final report verification
+    """
+    try:
+        reports_dir = Path("eda/reports")
+        final_path = reports_dir / "data_report_FINAL.md"
+        final_json_path = reports_dir / "data_report_FINAL.json"
+        
+        # Check for timestamped FINAL reports
+        timestamped_finals = list(reports_dir.glob("data_report_FINAL_*.md")) if reports_dir.exists() else []
+        
+        result = {
+            "status": "success",
+            "final_md_exists": final_path.exists(),
+            "final_json_exists": final_json_path.exists(),
+            "final_md_path": str(final_path) if final_path.exists() else None,
+            "final_json_path": str(final_json_path) if final_json_path.exists() else None,
+            "timestamped_finals_count": len(timestamped_finals),
+            "timestamped_finals": [f.name for f in timestamped_finals],
+            "file_size": None,
+            "preview": None,
+            "message": "",
+            "needs_consolidation": False
+        }
+        
+        # Check if we have multiple FINAL reports that need consolidation
+        if len(timestamped_finals) > 1:
+            result["needs_consolidation"] = True
+            result["message"] = f"Found {len(timestamped_finals)} timestamped FINAL reports. Consolidation recommended."
+            
+            # Get the most recent timestamped final for preview
+            most_recent = sorted(timestamped_finals, key=lambda x: x.stat().st_mtime)[-1]
+            with open(most_recent, 'r', encoding='utf-8') as f:
+                content = f.read()
+                result["preview"] = content[:500] + "..." if len(content) > 500 else content
+            result["message"] += f" Most recent: {most_recent.name}"
+            
+        elif final_path.exists():
+            file_size = final_path.stat().st_size
+            result["file_size"] = f"{file_size / 1024:.2f} KB"
+            
+            # Get preview
+            with open(final_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+                result["preview"] = content[:500] + "..." if len(content) > 500 else content
+            
+            result["message"] = "Final report verified and ready"
+        elif len(timestamped_finals) == 1:
+            # Only one timestamped final exists
+            result["message"] = f"Found timestamped final report: {timestamped_finals[0].name}. Consider renaming to data_report_FINAL.md"
+        else:
+            result["message"] = "Final report NOT found. Please create final consolidated report."
+        
+        return result
+        
+    except Exception as e:
+        return {
+            "status": "error",
+            "final_md_exists": False,
+            "final_json_exists": False,
+            "needs_consolidation": False,
+            "message": f"Failed to verify final report: {str(e)}"
+        }
+
+def consolidate_final_reports() -> Dict[str, Any]:
+    """
+    Consolidate multiple FINAL reports into one.
+    
+    Returns:
+        Dictionary with consolidation status
+    """
+    try:
+        reports_dir = Path("eda/reports")
+        
+        # Find all FINAL reports
+        main_final = reports_dir / "data_report_FINAL.md"
+        timestamped_finals = list(reports_dir.glob("data_report_FINAL_*.md"))
+        
+        if not timestamped_finals and main_final.exists():
+            return {
+                "status": "success",
+                "message": "Only one FINAL report exists, no consolidation needed",
+                "consolidated": False
+            }
+        
+        all_finals = []
+        if main_final.exists():
+            all_finals.append(main_final)
+        all_finals.extend(timestamped_finals)
+        
+        if len(all_finals) <= 1:
+            return {
+                "status": "info",
+                "message": f"Found {len(all_finals)} final report(s), no consolidation needed",
+                "consolidated": False
+            }
+        
+        # Sort by modification time
+        all_finals.sort(key=lambda x: x.stat().st_mtime)
+        
+        # Collect unique content sections from all reports
+        sections = {
+            "headers": [],
+            "summaries": [],
+            "statistics": [],
+            "analyses": [],
+            "findings": [],
+            "recommendations": []
+        }
+        
+        report_info = []
+        for report_path in all_finals:
+            with open(report_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+                report_info.append({
+                    "name": report_path.name,
+                    "modified": datetime.fromtimestamp(report_path.stat().st_mtime).isoformat(),
+                    "size": report_path.stat().st_size,
+                    "preview": content[:200]
+                })
+        
+        return {
+            "status": "success",
+            "message": f"Found {len(all_finals)} FINAL reports that could be consolidated",
+            "reports_to_consolidate": [r["name"] for r in report_info],
+            "report_details": report_info,
+            "consolidated": False,
+            "action_needed": "Please create a new consolidated FINAL report combining insights from all versions"
+        }
+        
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to check for consolidation: {str(e)}",
+            "consolidated": False
         }
 
 

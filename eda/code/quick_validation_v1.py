@@ -1,47 +1,63 @@
-#!/usr/bin/env python
-"""
-quick_validation.py
--------------------
-Lightweight validation of the generated consolidated report.
-Checks:
-1. File exists & readable
-2. Non-empty content
-3. Starts with expected title header
-"""
-import os
 import sys
+import json
+from pathlib import Path
+import numpy as np
+import scipy.io as sio
 
-REPORT_PATH = "reports/final_consolidated_report.md"
+def quick_validate(file_path: str):
+    report = {
+        "file_loadable": False,
+        "data_integrity": "Fail",
+        "critical_issues": [],
+    }
 
-result = {
-    "File loadable": False,
-    "Data integrity": "Fail",
-    "Critical issues": [],
-}
+    p = Path(file_path)
+    if not p.exists():
+        report["critical_issues"].append("File does not exist")
+        return report
+    if not p.is_file():
+        report["critical_issues"].append("Path is not a file")
+        return report
 
-if not os.path.exists(REPORT_PATH):
-    result["Critical issues"].append("File does not exist")
-else:
+    # Try loading .mat file
     try:
-        with open(REPORT_PATH, "r", encoding="utf-8") as f:
-            content = f.read()
-        result["File loadable"] = True
-        if len(content.strip()) == 0:
-            result["Critical issues"].append("File is empty")
-        elif not content.lstrip().startswith("# FINAL CONSOLIDATED DATA REPORT"):
-            result["Critical issues"].append("Unexpected header – may be corrupted")
-        else:
-            result["Data integrity"] = "Pass"
+        data = sio.loadmat(file_path)
+        report["file_loadable"] = True
     except Exception as e:
-        result["Critical issues"].append(f"Read error: {e}")
+        report["critical_issues"].append(f"Loading error: {e}")
+        return report
 
-print("VALIDATION REPORT:")
-print(f"- File loaded: {'✓' if result['File loadable'] else '✗'}")
-print(f"- Integrity: {result['Data integrity']}")
-if result["Critical issues"]:
-    print("- Issues: ")
-    for issue in result["Critical issues"]:
-        print(f"  • {issue}")
-else:
-    print("- Issues: None detected")
-print(f"- Recommendation: {'PROCEED' if result['Data integrity']=='Pass' else 'FIX THESE ISSUES FIRST'}")
+    # Basic structure checks
+    if not isinstance(data, dict):
+        report["critical_issues"].append("Loaded data is not a dictionary")
+        return report
+
+    # Remove MATLAB header keys
+    keys = [k for k in data.keys() if not k.startswith("__")]
+    if not keys:
+        report["critical_issues"].append("No user variables found in .mat file")
+        return report
+
+    for k in keys:
+        obj = data[k]
+        if obj is None:
+            report["critical_issues"].append(f"Variable '{k}' is None")
+        elif isinstance(obj, np.ndarray):
+            if obj.size == 0:
+                report["critical_issues"].append(f"Variable '{k}' is empty array")
+            elif np.isnan(obj).all():
+                report["critical_issues"].append(f"Variable '{k}' is all NaN")
+        # Add other quick checks if needed
+
+    if not report["critical_issues"]:
+        report["data_integrity"] = "Pass"
+
+    return report
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python quick_validation.py <path_to_file>")
+        sys.exit(1)
+    file_path = sys.argv[1]
+    report = quick_validate(file_path)
+    print("VALIDATION REPORT:\n", json.dumps(report, indent=2))

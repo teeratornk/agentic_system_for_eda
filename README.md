@@ -1,10 +1,10 @@
 # Physics Evolution - Automated EDA System
 
-An intelligent, multi-agent system for automated Exploratory Data Analysis (EDA) specialized in scientific machine learning and reduced order modeling. The system learns from past analyses and continuously improves its insights.
+An intelligent, multi-agent system for automated Exploratory Data Analysis (EDA) specialized in scientific machine learning and reduced order modeling. Built with **AG2** (AutoGen v2), the system learns from past analyses and continuously improves its insights.
 
 ## 🚀 Features
 
-- **Multi-Agent Architecture**: Four specialized agents collaborate to perform comprehensive data analysis
+- **Multi-Agent Architecture**: Five specialized agents collaborate using AG2 framework
 - **Historical Learning**: System learns from past analyses to improve future insights
 - **Scientific Focus**: Optimized for physics simulations and scientific computing datasets
 - **Automatic Versioning**: All code and reports are versioned to prevent overwrites
@@ -27,9 +27,15 @@ This dataset contains high-fidelity solutions of the 1D viscous Burgers equation
 
 - Python 3.8+
 - Azure OpenAI API access
+- AG2 (AutoGen v2) framework
 - Required Python packages:
   ```bash
-  pip install autogen python-dotenv numpy scipy matplotlib seaborn pandas
+  pip install ag2 python-dotenv numpy scipy matplotlib seaborn pandas
+  ```
+
+  Or install from requirements.txt:
+  ```bash
+  pip install -r requirements.txt
   ```
 
 ## 🛠️ Setup
@@ -488,13 +494,13 @@ Contributions are welcome! Areas for improvement:
 
 1. **Burgers Equation Dataset**: [Goswami et al. (2022)](https://www.sciencedirect.com/science/article/abs/pii/S0045782522001207). A physics-informed variational DeepONet for predicting crack path in quasi-brittle materials. *Computer Methods in Applied Mechanics and Engineering*, 391, 114587.
 
-2. **AutoGen Framework**: [Microsoft AutoGen](https://github.com/microsoft/autogen) - Multi-agent conversation framework
+2. **AG2 Framework**: [AG2 (AutoGen v2)](https://github.com/ag2ai/ag2) - Multi-agent conversation framework
 
 3. **Azure OpenAI**: [Azure OpenAI Service](https://azure.microsoft.com/en-us/products/ai-services/openai-service) - Enterprise AI models
 
 ## 🙏 Acknowledgments
 
-- Built with [AutoGen](https://github.com/microsoft/autogen)
+- Built with [AG2 (AutoGen v2)](https://github.com/ag2ai/ag2)
 - Powered by Azure OpenAI
 - Example data courtesy of [Goswami et al. (2022)](https://www.sciencedirect.com/science/article/abs/pii/S0045782522001207)
 - Optimized for scientific computing workflows

@@ -1,0 +1,16 @@
+{
+  "id": "1cf044d20fb3",
+  "timestamp": "2025-10-30T16:05:03.095529",
+  "file_path": "eda/reports/data_report_FINAL.md",
+  "file_type": ".md",
+  "data_summary": {},
+  "statistics": {},
+  "insights": [
+    "Comprehensive EDA and visual analytics completed for burgers_data_R10.mat",
+    "Iterative reports (v1\u2013v3) merged into FINAL",
+    "10 figures generated; 5 variables analyzed",
+    "Advanced analyses include correlations, spectral, gradient metrics",
+    "Repository cleaned; single authoritative FINAL report retained"
+  ],
+  "report_file": "1cf044d20fb3_report.md"
+}

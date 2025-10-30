@@ -1,20 +1,20 @@
 {
   "reports": [
     {
-      "id": "92ffce108325",
-      "timestamp": "2025-10-30T12:47:03.069339",
-      "file_path": "reports/final_consolidated_report.md",
+      "id": "1cf044d20fb3",
+      "timestamp": "2025-10-30T16:05:03.095529",
+      "file_path": "eda/reports/data_report_FINAL.md",
       "file_type": ".md",
       "data_summary": {},
       "statistics": {},
       "insights": [
-        "All variables centered near zero with variance 0.49-0.84",
-        "Dominant low-frequency modes across all fields",
-        "Derivative fields show higher variance and spectral power",
-        "No missing data and minimal outliers",
-        "Correlation analysis requires dimensionality reduction"
+        "Comprehensive EDA and visual analytics completed for burgers_data_R10.mat",
+        "Iterative reports (v1\u2013v3) merged into FINAL",
+        "10 figures generated; 5 variables analyzed",
+        "Advanced analyses include correlations, spectral, gradient metrics",
+        "Repository cleaned; single authoritative FINAL report retained"
       ],
-      "report_file": "92ffce108325_report.md"
+      "report_file": "1cf044d20fb3_report.md"
     }
   ],
   "patterns": {
