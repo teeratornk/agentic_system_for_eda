@@ -14,9 +14,7 @@ An intelligent, multi-agent system for automated Exploratory Data Analysis (EDA)
 
 The included Burgers equation dataset (`burgers_data_R10.mat`) is from:
 
-> **Source**: [A physics-informed variational DeepONet for predicting crack path in quasi-brittle materials](https://www.sciencedirect.com/science/article/abs/pii/S0045782522001207)  
-> *Computer Methods in Applied Mechanics and Engineering*, Volume 391, 2022  
-> DOI: 10.1016/j.cma.2022.114587
+> **Source**: https://www.sciencedirect.com/science/article/abs/pii/S0045782522001207
 
 This dataset contains high-fidelity solutions of the 1D viscous Burgers equation, commonly used for:
 - Testing reduced order modeling techniques
@@ -30,12 +28,7 @@ This dataset contains high-fidelity solutions of the 1D viscous Burgers equation
 - AG2 (AutoGen v2) framework
 - Required Python packages:
   ```bash
-  pip install ag2 python-dotenv numpy scipy matplotlib seaborn pandas
-  ```
-
-  Or install from requirements.txt:
-  ```bash
-  pip install -r requirements.txt
+  pip install autogen python-dotenv numpy scipy matplotlib seaborn pandas
   ```
 
 ## 🛠️ Setup
@@ -153,58 +146,70 @@ eda/
 ├── code/
 │   ├── quick_validation_v1.py    # Lightweight validation
 │   ├── eda_analysis_v1.py        # Comprehensive analysis
-│   ├── save_reports_v*.py        # Report generation scripts
-│   └── save_final_report_v*.py   # Final consolidation script
+│   └── save_reports_v*.py        # Report generation scripts
 ├── stats/
 │   └── statistics.json           # Complete statistics
 ├── figures/
 │   └── *.png                      # All visualizations
-├── reports/                       # VERSIONED & CONSOLIDATED REPORTS
+├── reports/                       # VERSIONED & FINAL REPORTS
 │   ├── data_report_v1.md         # Initial report
 │   ├── data_report_v2.md         # First enhancement
 │   ├── data_report_v3.md         # Further refinements
-│   ├── data_report_FINAL.md      # CONSOLIDATED FINAL REPORT
-│   ├── data_report_FINAL_[timestamp].md  # Archived final
-│   └── *.json                     # JSON versions
+│   ├── report_for_user.md        # 📌 FINAL USER REPORT (main deliverable)
+│   ├── report_for_user.json      # JSON version for programmatic access
+│   ├── report_for_user_[timestamp].md  # Archived versions
+│   └── data_report_latest.md     # Latest iteration (internal)
 └── history/
     └── *_report.md                # Historical reports
 ```
 
+### Report Naming Convention
+
+- **Iterative Reports**: `data_report_v1.md`, `data_report_v2.md`, etc.
+  - Internal working versions
+  - Show progression of analysis
+  
+- **Final User Report**: `report_for_user.md` 📌
+  - **This is the main deliverable**
+  - Consolidated, polished report for end users
+  - Contains all insights from iterative analysis
+  - Always the most comprehensive version
+  
+- **Archived Reports**: `report_for_user_YYYYMMDD_HHMMSS.md`
+  - Timestamped versions for record keeping
+  - Preserves history of multiple analysis runs
+
 ### Report Evolution & Consolidation
 
-The system follows an **iterative enhancement** approach culminating in a final consolidated report:
+The system follows an **iterative enhancement** approach culminating in a final user report:
 
 #### Iteration Phase
-1. **Version 1**: Initial comprehensive analysis
-2. **Version 2+**: Progressive enhancements based on review feedback
-3. Each version builds upon previous insights
+1. **Version 1-N**: Progressive analysis enhancements (`data_report_v*.md`)
+2. Each version builds upon previous insights
+3. Internal working documents
 
-#### Final Consolidation
-After all iterations, the system creates a **FINAL CONSOLIDATED REPORT** that:
-- Merges all analyses from every iteration
-- Shows the evolution of insights
-- Preserves all findings without duplication
-- Creates a coherent narrative of the analysis journey
+#### Final User Report
+After all iterations, the system creates **`report_for_user.md`** that:
+- Consolidates all analyses from every iteration
+- Presents findings in a user-friendly format
+- Includes all visualizations with descriptions
+- Serves as the primary deliverable for stakeholders
 
-**Example Final Report Structure**:
+**The User Report Contains**:
 ```markdown
-# FINAL CONSOLIDATED DATA REPORT
+# Comprehensive Data Analysis Report
 
-## Analysis Evolution
-### Version 1 - Initial Analysis
-- Basic statistics computed
-- Initial patterns identified
+## Executive Summary
+[High-level overview for stakeholders]
 
-### Version 2 - Enhanced Analysis
-- Added correlation analysis
-- Discovered spectral characteristics
+## Complete Analysis Results
+[All findings consolidated and organized]
 
-### Version 3 - Deep Dive
-- Gradient analysis for shock detection
-- Physics-based insights
+## Visualizations
+[All figures with descriptions and insights]
 
-## Consolidated Findings
-[All findings merged and organized]
+## Recommendations
+[Actionable next steps]
 ```
 
 ## 📊 Workflow Architecture
@@ -492,7 +497,7 @@ Contributions are welcome! Areas for improvement:
 
 ## 📚 References
 
-1. **Burgers Equation Dataset**: [Goswami et al. (2022)](https://www.sciencedirect.com/science/article/abs/pii/S0045782522001207). A physics-informed variational DeepONet for predicting crack path in quasi-brittle materials. *Computer Methods in Applied Mechanics and Engineering*, 391, 114587.
+1. **Burgers Equation Dataset**: [Lu Lu et al. (2022)](https://www.sciencedirect.com/science/article/abs/pii/S0045782522001207). A comprehensive and fair comparison of two neural operators (with practical extensions) based on FAIR data.
 
 2. **AG2 Framework**: [AG2 (AutoGen v2)](https://github.com/ag2ai/ag2) - Multi-agent conversation framework
 

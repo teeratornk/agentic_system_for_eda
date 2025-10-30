@@ -417,25 +417,37 @@ def check_analysis_files() -> Dict[str, Any]:
 def verify_final_report() -> Dict[str, Any]:
     """
     Specifically verify that the final report exists and is valid.
+    Checks for both report_for_user.md (preferred) and data_report_FINAL.md (legacy).
     
     Returns:
         Dictionary with final report verification
     """
     try:
         reports_dir = Path("eda/reports")
+        
+        # Primary final report for user
+        user_report_path = reports_dir / "report_for_user.md"
+        user_json_path = reports_dir / "report_for_user.json"
+        
+        # Legacy final report naming
         final_path = reports_dir / "data_report_FINAL.md"
         final_json_path = reports_dir / "data_report_FINAL.json"
         
-        # Check for timestamped FINAL reports
+        # Check for timestamped versions
+        timestamped_user = list(reports_dir.glob("report_for_user_*.md")) if reports_dir.exists() else []
         timestamped_finals = list(reports_dir.glob("data_report_FINAL_*.md")) if reports_dir.exists() else []
         
         result = {
             "status": "success",
-            "final_md_exists": final_path.exists(),
-            "final_json_exists": final_json_path.exists(),
-            "final_md_path": str(final_path) if final_path.exists() else None,
-            "final_json_path": str(final_json_path) if final_json_path.exists() else None,
+            "user_report_exists": user_report_path.exists(),
+            "user_json_exists": user_json_path.exists(),
+            "final_md_exists": final_path.exists() or user_report_path.exists(),
+            "final_json_exists": final_json_path.exists() or user_json_path.exists(),
+            "user_report_path": str(user_report_path) if user_report_path.exists() else None,
+            "legacy_final_path": str(final_path) if final_path.exists() else None,
+            "timestamped_user_count": len(timestamped_user),
             "timestamped_finals_count": len(timestamped_finals),
+            "timestamped_user": [f.name for f in timestamped_user],
             "timestamped_finals": [f.name for f in timestamped_finals],
             "file_size": None,
             "preview": None,
@@ -443,39 +455,56 @@ def verify_final_report() -> Dict[str, Any]:
             "needs_consolidation": False
         }
         
-        # Check if we have multiple FINAL reports that need consolidation
-        if len(timestamped_finals) > 1:
+        # Determine which report to use
+        primary_report = None
+        if user_report_path.exists():
+            primary_report = user_report_path
+            report_type = "user report"
+        elif final_path.exists():
+            primary_report = final_path
+            report_type = "legacy final report"
+        
+        # Check if we have multiple reports that need consolidation
+        total_timestamped = len(timestamped_user) + len(timestamped_finals)
+        if total_timestamped > 1:
             result["needs_consolidation"] = True
-            result["message"] = f"Found {len(timestamped_finals)} timestamped FINAL reports. Consolidation recommended."
+            result["message"] = f"Found {total_timestamped} timestamped reports. Consolidation into report_for_user.md recommended."
             
-            # Get the most recent timestamped final for preview
-            most_recent = sorted(timestamped_finals, key=lambda x: x.stat().st_mtime)[-1]
+            # Get the most recent for preview
+            all_timestamped = timestamped_user + timestamped_finals
+            most_recent = sorted(all_timestamped, key=lambda x: x.stat().st_mtime)[-1]
             with open(most_recent, 'r', encoding='utf-8') as f:
                 content = f.read()
                 result["preview"] = content[:500] + "..." if len(content) > 500 else content
             result["message"] += f" Most recent: {most_recent.name}"
             
-        elif final_path.exists():
-            file_size = final_path.stat().st_size
+        elif primary_report:
+            file_size = primary_report.stat().st_size
             result["file_size"] = f"{file_size / 1024:.2f} KB"
             
             # Get preview
-            with open(final_path, 'r', encoding='utf-8') as f:
+            with open(primary_report, 'r', encoding='utf-8') as f:
                 content = f.read()
                 result["preview"] = content[:500] + "..." if len(content) > 500 else content
             
-            result["message"] = "Final report verified and ready"
-        elif len(timestamped_finals) == 1:
-            # Only one timestamped final exists
-            result["message"] = f"Found timestamped final report: {timestamped_finals[0].name}. Consider renaming to data_report_FINAL.md"
+            if user_report_path.exists():
+                result["message"] = "Final user report (report_for_user.md) verified and ready"
+            else:
+                result["message"] = f"Found {report_type}. Consider renaming to report_for_user.md for clarity"
+                
+        elif total_timestamped == 1:
+            # Only one timestamped report exists
+            single_report = (timestamped_user + timestamped_finals)[0]
+            result["message"] = f"Found timestamped report: {single_report.name}. Should be saved as report_for_user.md"
         else:
-            result["message"] = "Final report NOT found. Please create final consolidated report."
+            result["message"] = "Final user report NOT found. Please create report_for_user.md"
         
         return result
         
     except Exception as e:
         return {
             "status": "error",
+            "user_report_exists": False,
             "final_md_exists": False,
             "final_json_exists": False,
             "needs_consolidation": False,
