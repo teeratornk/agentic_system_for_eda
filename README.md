@@ -146,70 +146,58 @@ eda/
 ├── code/
 │   ├── quick_validation_v1.py    # Lightweight validation
 │   ├── eda_analysis_v1.py        # Comprehensive analysis
-│   └── save_reports_v*.py        # Report generation scripts
+│   ├── save_reports_v*.py        # Report generation scripts
+│   └── save_final_report_v*.py   # Final consolidation script
 ├── stats/
 │   └── statistics.json           # Complete statistics
 ├── figures/
 │   └── *.png                      # All visualizations
-├── reports/                       # VERSIONED & FINAL REPORTS
+├── reports/                       # VERSIONED & CONSOLIDATED REPORTS
 │   ├── data_report_v1.md         # Initial report
 │   ├── data_report_v2.md         # First enhancement
 │   ├── data_report_v3.md         # Further refinements
-│   ├── report_for_user.md        # 📌 FINAL USER REPORT (main deliverable)
-│   ├── report_for_user.json      # JSON version for programmatic access
-│   ├── report_for_user_[timestamp].md  # Archived versions
-│   └── data_report_latest.md     # Latest iteration (internal)
+│   ├── data_report_FINAL.md      # CONSOLIDATED FINAL REPORT
+│   ├── data_report_FINAL_[timestamp].md  # Archived final
+│   └── *.json                     # JSON versions
 └── history/
     └── *_report.md                # Historical reports
 ```
 
-### Report Naming Convention
-
-- **Iterative Reports**: `data_report_v1.md`, `data_report_v2.md`, etc.
-  - Internal working versions
-  - Show progression of analysis
-  
-- **Final User Report**: `report_for_user.md` 📌
-  - **This is the main deliverable**
-  - Consolidated, polished report for end users
-  - Contains all insights from iterative analysis
-  - Always the most comprehensive version
-  
-- **Archived Reports**: `report_for_user_YYYYMMDD_HHMMSS.md`
-  - Timestamped versions for record keeping
-  - Preserves history of multiple analysis runs
-
 ### Report Evolution & Consolidation
 
-The system follows an **iterative enhancement** approach culminating in a final user report:
+The system follows an **iterative enhancement** approach culminating in a final consolidated report:
 
 #### Iteration Phase
-1. **Version 1-N**: Progressive analysis enhancements (`data_report_v*.md`)
-2. Each version builds upon previous insights
-3. Internal working documents
+1. **Version 1**: Initial comprehensive analysis
+2. **Version 2+**: Progressive enhancements based on review feedback
+3. Each version builds upon previous insights
 
-#### Final User Report
-After all iterations, the system creates **`report_for_user.md`** that:
-- Consolidates all analyses from every iteration
-- Presents findings in a user-friendly format
-- Includes all visualizations with descriptions
-- Serves as the primary deliverable for stakeholders
+#### Final Consolidation
+After all iterations, the system creates a **FINAL CONSOLIDATED REPORT** that:
+- Merges all analyses from every iteration
+- Shows the evolution of insights
+- Preserves all findings without duplication
+- Creates a coherent narrative of the analysis journey
 
-**The User Report Contains**:
+**Example Final Report Structure**:
 ```markdown
-# Comprehensive Data Analysis Report
+# FINAL CONSOLIDATED DATA REPORT
 
-## Executive Summary
-[High-level overview for stakeholders]
+## Analysis Evolution
+### Version 1 - Initial Analysis
+- Basic statistics computed
+- Initial patterns identified
 
-## Complete Analysis Results
-[All findings consolidated and organized]
+### Version 2 - Enhanced Analysis
+- Added correlation analysis
+- Discovered spectral characteristics
 
-## Visualizations
-[All figures with descriptions and insights]
+### Version 3 - Deep Dive
+- Gradient analysis for shock detection
+- Physics-based insights
 
-## Recommendations
-[Actionable next steps]
+## Consolidated Findings
+[All findings merged and organized]
 ```
 
 ## 📊 Workflow Architecture
