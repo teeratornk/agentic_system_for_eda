@@ -1,0 +1,36 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
+
+# Consider adding a display name for better job identification
+display_name: "Graph Construction AutoGen - Merge UserProfiles into AzureActivity"
+description: "Merge UserProfiles table into existing AzureActivity knowledge graph"
+
+# Example for table merge
+# command: >-
+#   python run_pipeline.py --jsonl data/AzureActivity.jsonl --merge-table --base-version "AADUserRiskEvents_20250929T191503" --table-name "AzureActivity" --structured --update-schema --iters 3 --export-dir outputs --limit-new 5
+
+# Current incremental command
+# command: >-
+#   python run_pipeline.py --jsonl data/AzureActivity.jsonl --iters 3 --export-dir outputs --structured --base-version "AzureActivity_20250929T234916" --incremental --update-schema --limit-new 25 
+
+command: >-
+  python run_pipeline.py --jsonl data/AzureActivity.jsonl --iters 1 --export-dir outputs --structured --limit-new 70%
+
+
+environment: azureml:tkad15-higher-24@latest
+compute: azureml:tkad15-F72s-EASTUS2
+experiment_name: graph_construction_autogen_aa
+
+# tkad15-cpu-Standard-F72s-westus tkad15-cpu-F72s tkad15-cpu-F72s-EASTUS
+
+# Consider adding tags for better organization
+tags:
+  data_source: "AzureActivity"
+  pipeline_type: "non-incremental"
+  # For merge: pipeline_type: "merge_table"
+  # pipeline_type: "incremental"
+  
+resources:
+  instance_count: 1
+  # Consider adding shm_size if your job uses shared memory
+  
+code: .
